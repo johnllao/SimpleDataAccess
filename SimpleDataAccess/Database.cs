@@ -11,6 +11,7 @@ namespace SimpleDataAccess
     {
         private string _connectionString;
         private string _connectionStringProviderName;
+        private int _timeout = 30;
         private IDbConnection _connection;
         private static Dictionary<Type, Delegate> _factoryCache = new Dictionary<Type,Delegate>();
 
@@ -30,15 +31,16 @@ namespace SimpleDataAccess
 
             _connectionString = connectionString.ConnectionString;
             _connectionStringProviderName = connectionString.ProviderName;
+            _timeout = timeout;
         }
 
-        public IEnumerable<T> Query<T>(string sql, params Parameter[] parameters)
+        public IEnumerable<T> Query<T>(string sql, params IParameter[] parameters)
         {
             var factory = GetFactory<T>() as Func<IDataReader, T>;
             return Query<T>(sql, factory, parameters);
         }
 
-        public IEnumerable<T> Query<T>(string sql, Func<IDataReader, T> factory, params Parameter[] parameters)
+        public IEnumerable<T> Query<T>(string sql, Func<IDataReader, T> factory, params IParameter[] parameters)
         {
             OpenConnection();
             using (var cmd = CreateCommand(sql, parameters))
@@ -84,7 +86,7 @@ namespace SimpleDataAccess
             }
         }
 
-        private IDbCommand CreateCommand(string sql, params Parameter[] parameters)
+        private IDbCommand CreateCommand(string sql, params IParameter[] parameters)
         {
             if (string.IsNullOrEmpty(sql))
                 throw new ArgumentNullException(sql);
@@ -92,6 +94,7 @@ namespace SimpleDataAccess
             var cmd = _connection.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = CommandType.Text;
+            cmd.CommandTimeout = _timeout;
 
             if (parameters != null && parameters.Length > 0)
             {
