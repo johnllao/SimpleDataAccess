@@ -12,11 +12,17 @@ namespace SimpleDataAccess
         private string _connectionString;
         private string _connectionStringProviderName;
         private IDbConnection _connection;
+        private static Dictionary<Type, Delegate> _factoryCache = new Dictionary<Type,Delegate>();
 
-        public Database(string connectionStringName)
+        public Database(string connectionStringName) : this(connectionStringName, 30) { }
+
+        public Database(string connectionStringName, int timeout)
         {
             if (connectionStringName == null)
                 throw new ArgumentNullException("connectionStringName");
+
+            if (timeout <= 0)
+                throw new ArgumentException(string.Format("The timeout value cannot be zero or negative value"), "timeout");
 
             var connectionString = ConfigurationManager.ConnectionStrings[connectionStringName];
 
@@ -94,10 +100,17 @@ namespace SimpleDataAccess
 
         private static Delegate GetFactory<T>()
         {
-            var type = typeof(T);
-            var createMethod = type.GetMethod("Create", BindingFlags.Public | BindingFlags.Static);
-            var createDelegate = Delegate.CreateDelegate(typeof(Func<IDataReader, T>), createMethod);
-            return createDelegate;
+            Type type = typeof(T);
+            Delegate factory =_factoryCache[type];
+            if (factory != null)
+                return factory;
+
+            var factoryMethod = type.GetMethod("Create", BindingFlags.Public | BindingFlags.Static);
+            if (factoryMethod == null)
+                throw new NullReferenceException(string.Format("Unable to retrieve the factory method of class {0}. Please consider having a static method 'Create' in the class", type.Name));
+
+            factory = Delegate.CreateDelegate(typeof(Func<IDataReader, T>), factoryMethod);
+            return factory;
         }
     }
 }
