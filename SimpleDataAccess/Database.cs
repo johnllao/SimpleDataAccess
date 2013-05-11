@@ -25,7 +25,6 @@ namespace SimpleDataAccess
                 throw new ArgumentException(string.Format("The timeout value cannot be zero or negative value"), "timeout");
 
             var connectionString = ConfigurationManager.ConnectionStrings[connectionStringName];
-
             if (connectionString == null)
                 throw new NullReferenceException(string.Format("Connection string {0} not found in the configuration", connectionStringName));
 
@@ -35,7 +34,8 @@ namespace SimpleDataAccess
 
         public IEnumerable<T> Query<T>(string sql, params Parameter[] parameters)
         {
-            return Query<T>(sql, null, parameters);
+            var factory = GetFactory<T>() as Func<IDataReader, T>;
+            return Query<T>(sql, factory, parameters);
         }
 
         public IEnumerable<T> Query<T>(string sql, Func<IDataReader, T> factory, params Parameter[] parameters)
@@ -43,16 +43,13 @@ namespace SimpleDataAccess
             OpenConnection();
             using (var cmd = CreateCommand(sql, parameters))
             {
-                var reader = cmd.ExecuteReader();
-
-                Func<IDataReader, T> modelFactory = factory;
-                if (modelFactory == null)
-                    factory = GetFactory<T>() as Func<IDataReader, T>;
-                
-                while (reader.Read())
+                using (var reader = cmd.ExecuteReader())
                 {
-                    var o = factory(reader);
-                    yield return o;
+                    while (reader.Read())
+                    {
+                        var o = factory(reader);
+                        yield return o;
+                    }
                 }
             }
         }
@@ -108,16 +105,20 @@ namespace SimpleDataAccess
 
         private static Delegate GetFactory<T>()
         {
+            Delegate factory;
             Type type = typeof(T);
-            Delegate factory =_factoryCache[type];
-            if (factory != null)
+            if (_factoryCache.ContainsKey(type))
+            {
+                factory = _factoryCache[type];
                 return factory;
+            }
 
             var factoryMethod = type.GetMethod("Create", BindingFlags.Public | BindingFlags.Static);
             if (factoryMethod == null)
                 throw new NullReferenceException(string.Format("Unable to retrieve the factory method of class {0}. Please consider having a static method 'Create' in the class", type.Name));
 
             factory = Delegate.CreateDelegate(typeof(Func<IDataReader, T>), factoryMethod);
+            _factoryCache.Add(type, factory);
             return factory;
         }
     }

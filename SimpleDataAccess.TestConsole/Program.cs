@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 
 namespace SimpleDataAccess.TestConsole
 {
@@ -10,10 +8,24 @@ namespace SimpleDataAccess.TestConsole
     {
         public static void Main(string[] args)
         {
+            var stopwatch = Stopwatch.StartNew();
             using (var db = new Database("Island"))
             {
-                var q = db.Query<Member>("select * from Member");
+                var list1 = db.Query<Member>("select Id, FirstName, LastName from Member where Id=@Id", new Parameter("@Id", SqlDbType.Int, 1));
+                foreach (var item in list1)
+                {
+                    Console.WriteLine("[{0}] {1} {2}", item.Id, item.FirstName, item.LastName);
+                }
+
+                var list2 = db.Query<Member>("select Id, FirstName, LastName from Member where Id=@Id", new Parameter("@Id", SqlDbType.Int, 2));
+                foreach (var item in list2)
+                {
+                    Console.WriteLine("[{0}] {1} {2}", item.Id, item.FirstName, item.LastName);
+                }
             }
+            stopwatch.Stop();
+            Console.WriteLine("{0}ms", stopwatch.ElapsedMilliseconds);
+            Console.ReadLine();
         }
     }
 
