@@ -35,11 +35,19 @@ namespace SimpleDataAccess
 
         public IEnumerable<T> Query<T>(string sql, params Parameter[] parameters)
         {
+            return Query<T>(sql, null, parameters);
+        }
+
+        public IEnumerable<T> Query<T>(string sql, Func<IDataReader, T> factory, params Parameter[] parameters)
+        {
             OpenConnection();
             using (var cmd = CreateCommand(sql, parameters))
             {
                 var reader = cmd.ExecuteReader();
-                var factory = GetFactory<T>() as Func<IDataReader, T>;
+
+                Func<IDataReader, T> modelFactory = factory;
+                if (modelFactory == null)
+                    factory = GetFactory<T>() as Func<IDataReader, T>;
                 
                 while (reader.Read())
                 {
