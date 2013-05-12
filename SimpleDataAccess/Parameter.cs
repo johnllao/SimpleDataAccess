@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
 
-namespace SimpleDataAccess
+namespace DataAccess
 {
     public class Parameter : IParameter
     {

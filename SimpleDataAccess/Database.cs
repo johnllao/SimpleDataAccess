@@ -5,9 +5,9 @@ using System.Data;
 using System.Data.Common;
 using System.Reflection;
 
-namespace SimpleDataAccess
+namespace DataAccess
 {
-    public class Database : IDisposable
+    public class Database : IDatabase, IDisposable
     {
         private string _connectionString;
         private string _connectionStringProviderName;
@@ -53,6 +53,15 @@ namespace SimpleDataAccess
                         yield return o;
                     }
                 }
+            }
+        }
+
+        public void Execute(string sql, params IParameter[] parameters)
+        {
+            OpenConnection();
+            using (var cmd = CreateCommand(sql, parameters))
+            {
+                cmd.ExecuteNonQuery();
             }
         }
 
