@@ -1,11 +1,31 @@
 Simple Data Access
 ================
 
-Simple data access library for .NET
+Simple data access library for .NET. Code is inspired by peta POCO and Massive. Goal is to be able to run SQL queries and be able to return concrete objects
 
-Examples
+Create a class with a factory method
+----------------
 
-1. Using the call Execute(string sql, params IParameter[] parameters)
+```csharp
+public class Member
+{
+	public int Id { get; set; }
+	public string FirstName { get; set; }
+	public string LastName { get; set; }
+
+	public static Member Create(IDataReader reader)
+	{
+		var i = new Member();
+		i.Id = reader.GetInt32(reader.GetOrdinal("Id"));
+		i.FirstName = reader.GetString(reader.GetOrdinal("FirstName"));
+		i.LastName = reader.GetString(reader.GetOrdinal("LastName"));
+		return i;
+	}
+}
+```
+
+Using the call Execute(string sql, params IParameter[] parameters)
+----------------
 
 ```csharp
 using (var db = new Database("MyConnectionStringName"))
@@ -16,7 +36,8 @@ using (var db = new Database("MyConnectionStringName"))
 }
 ```
 
-2. Using the call Query<T>(string sql)
+Using the call Query<T>(string sql)
+----------------
 
 ```csharp
 using (var db = new Database("MyConnectionStringName"))
@@ -29,7 +50,8 @@ using (var db = new Database("MyConnectionStringName"))
 }
 ```
 
-3. Using the call Query<T>(string sql, params IParameter[] parameters)
+Using the call Query<T>(string sql, params IParameter[] parameters)
+----------------
 
 ```csharp
 using (var db = new Database("MyConnectionStringName"))
@@ -44,7 +66,8 @@ using (var db = new Database("MyConnectionStringName"))
 }
 ```
 
-4. Using the call Query<T>(string sql, Func<IDataReader, T> factory, params IParameter[] parameters)
+Using the call Query<T>(string sql, Func&lt;IDataReader, T&gt; factory, params IParameter[] parameters)
+----------------
 
 ```csharp
 using (var db = new Database("MyConnectionStringName"))
