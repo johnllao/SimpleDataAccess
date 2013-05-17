@@ -9,5 +9,8 @@ namespace DataAccess
         void Execute(string sql, params IParameter[] parameters);
         IEnumerable<T> Query<T>(string sql, params IParameter[] parameters);
         IEnumerable<T> Query<T>(string sql, Func<IDataReader, T> factory, params IParameter[] parameters);
+        void BeginTransaction();
+        void RollbackTransaction();
+        void CommitTransaction();
     }
 }

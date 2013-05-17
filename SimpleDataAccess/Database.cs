@@ -13,6 +13,7 @@ namespace DataAccess
         private string _connectionStringProviderName;
         private int _timeout = 30;
         private IDbConnection _connection;
+        private IDbTransaction _transaction;
         private static Dictionary<Type, Delegate> _factoryCache = new Dictionary<Type,Delegate>();
 
         public Database(string connectionStringName) : this(connectionStringName, 30) { }
@@ -65,8 +66,41 @@ namespace DataAccess
             }
         }
 
+        public void BeginTransaction() 
+        {
+            OpenConnection();
+
+            if (_transaction == null)
+                _transaction = _connection.BeginTransaction();
+        }
+
+        public void RollbackTransaction() 
+        {
+            if (_transaction != null)
+            {
+                _transaction.Rollback();
+                _transaction = null;
+            }
+        }
+
+        public void CommitTransaction() 
+        {
+            if (_transaction != null)
+            {
+                _transaction.Commit();
+                _transaction = null;
+            }
+        }
+
         public void Dispose()
         {
+            if (_transaction != null)
+            {
+                _transaction.Rollback();
+                _transaction.Dispose();
+                _transaction = null;
+            }
+
             if (_connection != null && _connection.State == ConnectionState.Open)
             {
                 _connection.Close();
@@ -104,6 +138,9 @@ namespace DataAccess
             cmd.CommandText = sql;
             cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = _timeout;
+
+            if (_transaction != null)
+                cmd.Transaction = _transaction;
 
             if (parameters != null && parameters.Length > 0)
             {

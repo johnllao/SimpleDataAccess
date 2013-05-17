@@ -11,6 +11,8 @@ namespace DataAccess.TestConsole
             var stopwatch = Stopwatch.StartNew();
             using (var db = new Database("Island"))
             {
+                db.BeginTransaction();
+
                 Console.WriteLine("Using the call Execute(string sql, params IParameter[] parameters)");
                 db.Execute("insert into Member (FirstName, LastName) values (@firstName, @lastName)",
                     new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
@@ -52,10 +54,13 @@ namespace DataAccess.TestConsole
                 db.Execute("delete from Member where FirstName = @firstName and LastName = @lastName",
                     new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
                     new Parameter("@lastName", SqlDbType.VarChar, "Smith", 50));
+
+                db.RollbackTransaction();
             }
             stopwatch.Stop();
             Console.WriteLine("{0}ms", stopwatch.ElapsedMilliseconds);
             Console.ReadLine();
+
         }
     }
 
