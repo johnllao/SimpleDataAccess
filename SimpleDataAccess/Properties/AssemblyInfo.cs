@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Data Access")]
-[assembly: AssemblyDescription("Yet another light weight data access component offering basic query and execute non query functionality")]
+[assembly: AssemblyDescription("Simple data access library for .NET. Code is inspired by peta POCO and Massive. Goal is to be able to run SQL queries and be able to return concrete objects")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DataAccess")]
