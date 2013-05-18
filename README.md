@@ -88,3 +88,17 @@ using (var db = new Database("MyConnectionStringName"))
 	}
 }
 ```
+
+Using Transactions
+----------------
+
+```csharp
+using (var db = new Database("MyConnectionStringName"))
+{
+	db.BeginTransaction();
+	db.Execute("insert into Member (FirstName, LastName) values (@firstName, @lastName)",
+	   new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
+	   new Parameter("@lastName", SqlDbType.VarChar, "Smith", 50));
+	db.RollbackTransaction();
+}
+```
