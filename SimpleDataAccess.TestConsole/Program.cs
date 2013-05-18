@@ -11,8 +11,6 @@ namespace DataAccess.TestConsole
             var stopwatch = Stopwatch.StartNew();
             using (var db = new Database("Island"))
             {
-                db.BeginTransaction();
-
                 Console.WriteLine("Using the call Execute(string sql, params IParameter[] parameters)");
                 db.Execute("insert into Member (FirstName, LastName) values (@firstName, @lastName)",
                     new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
@@ -55,7 +53,34 @@ namespace DataAccess.TestConsole
                     new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
                     new Parameter("@lastName", SqlDbType.VarChar, "Smith", 50));
 
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Using the transactions");
+            using (var db = new Database("Island"))
+            {
+                db.BeginTransaction();
+                db.Execute("insert into Member (FirstName, LastName) values (@firstName, @lastName)",
+                   new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
+                   new Parameter("@lastName", SqlDbType.VarChar, "Smith", 50));
                 db.RollbackTransaction();
+
+                var list = db.Query<Member>(
+                    "select Id, FirstName, LastName from Member where FirstName=@firstName and LastName=@LastName", 
+                    r => {
+                        var i = new Member();
+                        i.Id = r.GetInt32(r.GetOrdinal("Id"));
+                        i.FirstName = r.GetString(r.GetOrdinal("FirstName"));
+                        i.LastName = r.GetString(r.GetOrdinal("LastName"));
+                        return i;
+                    },
+                    new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
+                    new Parameter("@lastName", SqlDbType.VarChar, "Smith", 50)
+                );
+                foreach (var item in list)
+                {
+                    Console.WriteLine("[{0}] {1} {2}", item.Id, item.FirstName, item.LastName);
+                }
             }
             stopwatch.Stop();
             Console.WriteLine("{0}ms", stopwatch.ElapsedMilliseconds);
