@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="IDatabase.cs" />
     <Compile Include="IParameter.cs" />
     <Compile Include="Parameter.cs" />

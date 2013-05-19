@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>DataAccess</id>
-    <version>1.0.0.2</version>
+    <version>1.0.0.3</version>
     <authors>John L. Lao</authors>
     <owners>John L. Lao</owners>
     <projectUrl>https://github.com/johnllao/SimpleDataAccess</projectUrl>

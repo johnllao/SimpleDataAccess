@@ -89,6 +89,20 @@ using (var db = new Database("MyConnectionStringName"))
 }
 ```
 
+Using dynamics
+----------------
+
+```csharp
+using (var db = new Database("MyConnectionStringName"))
+{
+	var list = db.Query<dynamic>("select Id, FirstName, LastName from Member");
+	foreach (var item in list)
+	{
+		Console.WriteLine("[{0}] {1} {2}", item.Id, item.FirstName, item.LastName);
+	}
+}
+```
+
 Using Transactions
 ----------------
 

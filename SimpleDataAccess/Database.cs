@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
+using System.Dynamic;
 using System.Reflection;
 
 namespace DataAccess
@@ -162,12 +163,28 @@ namespace DataAccess
                 return factory;
             }
 
-            var factoryMethod = type.GetMethod("Create", BindingFlags.Public | BindingFlags.Static);
-            if (factoryMethod == null)
-                throw new NullReferenceException(string.Format("Unable to retrieve the factory method of class {0}. Please consider having a static method 'Create' in the class", type.Name));
-
-            factory = Delegate.CreateDelegate(typeof(Func<IDataReader, T>), factoryMethod);
-            _factoryCache.Add(type, factory);
+            if (type.IsDynamic())
+            {
+                Func<IDataReader, dynamic> dynamicFactory =
+                    reader =>
+                    {
+                        dynamic expando = new ExpandoObject();
+                        var d = expando as IDictionary<string, object>;
+                        for (int i = 0; i < reader.FieldCount; i++)
+                            d.Add(reader.GetName(i), DBNull.Value.Equals(reader[i]) ? null : reader[i]);
+                        return expando;
+                    };
+                factory = dynamicFactory;
+            }
+            else
+            {
+                var factoryMethod = type.GetMethod("Create", BindingFlags.Public | BindingFlags.Static);
+                if (factoryMethod == null)
+                    throw new NullReferenceException(string.Format("Unable to retrieve the factory method of class {0}. Please consider having a static method 'Create' in the class", type.Name));
+                factory = Delegate.CreateDelegate(typeof(Func<IDataReader, T>), factoryMethod);
+                _factoryCache.Add(type, factory);
+            }
+            
             return factory;
         }
     }

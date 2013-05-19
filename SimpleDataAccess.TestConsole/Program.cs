@@ -7,7 +7,7 @@ namespace DataAccess.TestConsole
     public class Program
     {
         public static void Main(string[] args)
-        {
+        {   
             var stopwatch = Stopwatch.StartNew();
             using (var db = new Database("Island"))
             {
@@ -31,8 +31,8 @@ namespace DataAccess.TestConsole
                     r => {
                         var i = new Member();
                         i.Id = r.GetInt32(r.GetOrdinal("Id"));
-                        i.FirstName = r.GetString(r.GetOrdinal("FirstName")) + " :)";
-                        i.LastName = r.GetString(r.GetOrdinal("LastName")) + " :)";
+                        i.FirstName = r.GetString(r.GetOrdinal("FirstName"));
+                        i.LastName = r.GetString(r.GetOrdinal("LastName"));
                         return i;
                     },
                     new Parameter("@Id", SqlDbType.Int, 2));
@@ -49,10 +49,17 @@ namespace DataAccess.TestConsole
                     Console.WriteLine("[{0}] {1} {2}", item.Id, item.FirstName, item.LastName);
                 }
 
+                Console.WriteLine();
+                Console.WriteLine("Using dynamic");
+                var list4 = db.Query<dynamic>("select Id, FirstName, LastName from Member");
+                foreach (var item in list4)
+                {
+                    Console.WriteLine("[{0}] {1} {2}", item.Id, item.FirstName, item.LastName);
+                }
+
                 db.Execute("delete from Member where FirstName = @firstName and LastName = @lastName",
                     new Parameter("@firstName", SqlDbType.VarChar, "John", 50),
                     new Parameter("@lastName", SqlDbType.VarChar, "Smith", 50));
-
             }
 
             Console.WriteLine();
